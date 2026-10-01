@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scratch Card</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #fffaf2; font-family: "Noto Sans Thai", system-ui, sans-serif; }
+  body { display: flex; flex-direction: column; gap: 14px; align-items: center; justify-content: center; }
+  button { font: inherit; padding: 8px 20px; border: 0; border-radius: 999px; background: #f4a9bd; color: #fff; cursor: pointer; }
+  .card { position: relative; width: min(92vw, 360px); aspect-ratio: 3 / 2; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 18px rgba(224,130,160,.35); }
+  .prize { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fff6e0; color: #c2587a; text-align: center; padding: 12px; }
+  .prize b { font-size: 28px; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: crosshair; transition: opacity .6s; }
+  canvas.done { opacity: 0; pointer-events: none; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="prize"><span>เลขมงคลของท่านหญิงวันนี้คือ</span><b id="num" style="font-size:64px;letter-spacing:6px">000</b></div>
+  <canvas id="c"></canvas>
+</div>
+<button id="again">ขูดใหม่</button>
+<script>
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  const BRUSH = 22;       // ขนาดหัวขูด
+  const REVEAL_AT = 0.55; // ขูดไปกี่ % แล้วเปิดทั้งใบ
+
+  function init() {
+    document.getElementById('num').textContent = String(Math.floor(Math.random() * 1000)).padStart(3, '0'); // เลข 3 หลัก 000-999
+    canvas.classList.remove('done');
+    ctx.globalCompositeOperation = 'source-over';
+    const r = canvas.getBoundingClientRect();
+    canvas.width = r.width; canvas.height = r.height;
+    const g = ctx.createLinearGradient(0, 0, r.width, r.height);
+    g.addColorStop(0, '#f7c6d3'); g.addColorStop(.5, '#ffe3ea'); g.addColorStop(1, '#f2b0c3');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, r.width, r.height);
+    ctx.fillStyle = '#d98aa3'; ctx.font = '600 20px sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('ขูดเลย!', r.width / 2, r.height / 2);
+    ctx.globalCompositeOperation = 'destination-out';
+  }
+
+  let drawing = false;
+  function scratch(e) {
+    const r = canvas.getBoundingClientRect();
+    ctx.beginPath();
+    ctx.arc(e.clientX - r.left, e.clientY - r.top, BRUSH, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  function checkCleared() {
+    const d = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    let clear = 0, n = 0;
+    for (let i = 3; i < d.length; i += 40) { n++; if (d[i] === 0) clear++; }
+    if (clear / n > REVEAL_AT) canvas.classList.add('done');
+  }
+
+  canvas.addEventListener('pointerdown', e => { drawing = true; canvas.setPointerCapture(e.pointerId); scratch(e); });
+  canvas.addEventListener('pointermove', e => { if (drawing) scratch(e); });
+  canvas.addEventListener('pointerup', () => { drawing = false; checkCleared(); });
+
+  document.getElementById('again').addEventListener('click', init);
+  init();
+</script>
+</body>
+</html>
