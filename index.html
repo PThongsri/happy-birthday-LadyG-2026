@@ -28,8 +28,11 @@
   const REVEAL_AT = 0.55; // ขูดไปกี่ % แล้วเปิดทั้งใบ
 
   function init() {
-    document.getElementById('num').textContent = String(Math.floor(Math.random() * 1000)).padStart(3, '0'); // เลข 3 หลัก 000-999
+    canvas.style.transition = 'none';   // ให้ชั้นเคลือบกลับมาทันที ไม่ค่อยๆ จาง
     canvas.classList.remove('done');
+    void canvas.offsetWidth;
+    canvas.style.transition = '';
+    document.getElementById('num').textContent = String(Math.floor(Math.random() * 1000)).padStart(3, '0'); // เลข 3 หลัก 000-999
     ctx.globalCompositeOperation = 'source-over';
     const r = canvas.getBoundingClientRect();
     canvas.width = r.width; canvas.height = r.height;
